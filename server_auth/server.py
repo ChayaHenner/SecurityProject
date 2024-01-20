@@ -3,7 +3,7 @@ import staticVar
 import socket
 import struct
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
+from serverThread import ServerThread
 class Server:
     def __init__(self):
         logging.info("connecting to auth server")
@@ -32,12 +32,13 @@ class Server:
 
             while True:
                 client_socket, client_address = self.server_socket.accept()
-                request = client_socket.recv(1024)
-                # name = client_socket.recv(1024).decode('utf-8')
-                logging.info(f"got request: {request} from {client_address}")
-                unpacked_data = struct.unpack(f"!16s B H I {len(request) - struct.calcsize('!16s B H I ')}s", request)
-                clientID, version, code, payload_size, payload = unpacked_data
-                logging.info(f"got request:client id {clientID.decode('utf-8')} version {version} code {code } payload {payload.decode('utf-8')} payload_size {payload_size}")
+                ServerThread(client_socket).start()
+                # request = client_socket.recv(1024)
+                # # name = client_socket.recv(1024).decode('utf-8')
+                # logging.info(f"got request: {request} from {client_address}")
+                # unpacked_data = struct.unpack(f"!16s B H I {len(request) - struct.calcsize('!16s B H I ')}s", request)
+                # clientID, version, code, payload_size, payload = unpacked_data
+                # logging.info(f"got request:client id {clientID.decode('utf-8')} version {version} code {code } payload {payload.decode('utf-8')} payload_size {payload_size}")
 
 
         except Exception as e:

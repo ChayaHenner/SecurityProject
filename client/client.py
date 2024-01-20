@@ -28,14 +28,14 @@ class Client:
             client_socket.connect((self.server_address, self.server_port))
             # client_socket.send(self.client_name.encode('utf-8'))
             # client_socket.close()
-            client_id = "1234567890123456"  # 16 characters
-            version = 2  # 1 byte
-            code = 1025  # 2 bytes
-            payload_size = 10  # 4 bytes
-            payload = "sari"  # Variable size
+            # client_id =   # 16 characters
+            # version = 2  # 1 byte
+            # code = 1025  # 2 bytes
+            # payload_size = 10  # 4 bytes
+            # payload = "sari"  # Variable size
 
-            request_instance = Request(client_id, version, code, payload_size, payload)
-            packed_data = request_instance.pack()
+            request = Request("1234567890123456", 2, 1025, 10, "payload")
+            packed_data = request.pack()
             client_socket.send(packed_data)
 
         except Exception as e:
