@@ -10,6 +10,8 @@ class Ticket:
         self.payload_size=payload_size
         self.payload=payload
 
+
+
     def pack(self):
         packed_data = struct.pack(f"!16s !16s !16s B H I {len(self.payload)}s",
                                   self.clientID.encode('utf-8'),
