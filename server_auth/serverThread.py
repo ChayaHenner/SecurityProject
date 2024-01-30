@@ -38,8 +38,6 @@ class ServerThread(Thread):
             payload_1 = unpacked_data[5].decode('utf-8').rstrip('\x00')
             # logging.info(clientID, version, code, payload_size, payload_0, payload_1)  
 
-
-
             return clientID, version, code, payload_size, payload_0, payload_1
 
             #read_header unpack header and payload ,send errors if not good header
