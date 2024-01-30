@@ -1,10 +1,8 @@
 import struct
 client_request = {
-    1025: "RegisterClient",
-    1027: "RegisterServer",
-    1026: "GetServerList",
+    1024: "RegisterClient",
     1027: "GetSymmetricKey",
-}#fix 1027
+}
 
 class Request:
     def __init__(self,clientID,version,code,payload_size,payload):
@@ -15,12 +13,20 @@ class Request:
         self.payload=payload
 
     def pack(self):
-        packed_data = struct.pack(f"!16s B H I {len(self.payload)}s",
+        if self.code==1024:
+            x=255
+            y=255
+        elif self.code==1027 :
+            x=16
+            y=8
+        packed_data = struct.pack(f"!16s B H I {x}s {y}s",
                                   self.clientID.encode('utf-8'),
                                   self.version,
                                   self.code,
                                   self.payload_size,
-                                  self.payload.encode('utf-8'))
+                                  self.payload[0].encode('utf-8'),
+                                  self.payload[1].encode('utf-8')
+                                  )
         return packed_data
 
         

@@ -32,6 +32,7 @@ class Server:
 
             while True:
                 client_socket, client_address = self.server_socket.accept()
+                logging.info(f"New client on {client_address}.")
                 ServerThread(client_socket).start()
                 # request = client_socket.recv(1024)
                 # # name = client_socket.recv(1024).decode('utf-8')
