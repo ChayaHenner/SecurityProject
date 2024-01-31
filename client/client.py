@@ -40,7 +40,7 @@ class Client:
     def send_register_request(self):
         try:
             self.read_me_file()
-            request = Request("34cb345f82553b3f6df57ef7890a6d2a", 2, 1024, 510,[self.client_password , self.client_name] )
+            request = Request("sc1fbd2e3c98d2ce", 2, 1024, 510,[ self.client_name ,self.client_password ] )
             packed_data = request.pack()
             self.client_socket.send(packed_data)
 
