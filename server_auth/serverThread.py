@@ -4,6 +4,8 @@ import logging
 import struct
 import uuid
 from datetime import datetime
+import os
+from response import Response, ResponseRegistrationSuccess, ResponseRegistrationFailed, ResponseSendingSymmetricKey
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.NOTSET)
 
@@ -73,11 +75,15 @@ class ServerThread(Thread):
              if not exists:
                 self.create_uuid()
                 self.save_client()
+                self.response_register_client_success()
              else:
                 raise Exception("client already exists")
        
         def send_ticket(self):
              logging.info("send ticket")
+             self.create_encrypt_AES()
+             self.create_ticket()
+             self.response_send_ticket()
         
         def check_client_exist(self):
             for client in self.clients:
@@ -95,15 +101,34 @@ class ServerThread(Thread):
                 client_info = {
                         'ID': self.request_info['clientID'],
                         'Name': self.request_info['payload_0'],
-                        'PasswordHash':self.request_info['payload_1'], #to do sha-256
+                        'Password':self.request_info['payload_1'], 
                         'LastSeen': datetime.now()
                 }
-                self.clients.append(client_info)
 
+                client_info['Password']=self.passwordHash(client_info['Password'])
+                self.clients.append(client_info)
                 try:
                     with open('clients.txt', 'a') as file:
-                        file.write(f"{client_info['ID']}:{client_info['Name']}:{client_info['PasswordHash']}:{client_info['LastSeen']}\n")
-                    print(f"Client '{client_info['ID']}' saved to 'clients'.")
+                        file.write(f"{self.uuid}:{client_info['Name']}:{client_info['Password']}:{client_info['LastSeen']}\n")
+                    print(f"Client '{self.uuid}' saved to 'clients'.")
                 except Exception as e:
                     print(f"Error saving client to file 'clients': {e}")
 
+        def passwordHash(self,password):
+            password_bytes = password.encode('utf-8')
+            hash_object = SHA256.new(password_bytes)
+            sha256_hash = hash_object.digest()
+            return sha256_hash
+        
+        def create_encrypt_AES(self):
+            self.aes_key: bytes = os.urandom(1024)
+            #with pychrome?
+            #encrypt with client key
+        
+        def create_ticket(self):
+            logging.info("creating ticket")
+            #create and save ticket self.ticket
+
+        def response_register_client_success(self):
+            resp =  ResponseRegistrationSuccess(self.uuid)
+            
