@@ -5,7 +5,8 @@ import struct
 import uuid
 from datetime import datetime
 import os
-from response import Response, ResponseRegistrationSuccess, ResponseRegistrationFailed, ResponseSendingSymmetricKey
+from response import Response ,ResponseRegistrationSuccess ,ResponseRegistrationFailed,ResponseSendingSymmetricKey
+from Crypto.Hash import SHA256
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.NOTSET)
 
@@ -130,5 +131,8 @@ class ServerThread(Thread):
             #create and save ticket self.ticket
 
         def response_register_client_success(self):
-            resp =  ResponseRegistrationSuccess(self.uuid)
+             logging.info("aaa")
+             ResponseRegistrationSuccess(self.uuid)
+              #pack response
+              #send back to client
             
