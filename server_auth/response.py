@@ -5,13 +5,15 @@ class ResponsePayloadCodes(Enum):
     SendingSymmetricKey = 1603
 
 
-SERVER_VERSION = 24
+SERVER_VERSION = 24  
+
 
 class Response:
     def __init__(self, code):
         self.version = SERVER_VERSION
         self.code = code
         self.payload_size = 0#according to code
+        self.payload = b''
 
     # def update_payload(self, payload_size):
     #     self.payload_size = payload_size
