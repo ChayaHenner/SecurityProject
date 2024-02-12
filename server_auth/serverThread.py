@@ -6,7 +6,8 @@ import uuid
 from datetime import datetime
 import os
 from response import Response ,ResponseRegistrationSuccess ,ResponseRegistrationFailed,ResponseSendingSymmetricKey
-from Crypto.Hash import SHA256
+import hashlib
+#from Crypto.Hash import SHA256
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.NOTSET)
 
@@ -78,7 +79,7 @@ class ServerThread(Thread):
                 self.save_client()
                 self.response_register_client_success()
              else:
-                raise Exception("client already exists")
+                self.response_register_client_failed
        
         def send_ticket(self):
              logging.info("send ticket")
@@ -88,7 +89,7 @@ class ServerThread(Thread):
         
         def check_client_exist(self):
             for client in self.clients:
-                if client['ID'] == self.request_info['clientID']:
+                if client['Name'] == self.request_info['payload_0']:
                     return True
             return False
 
@@ -116,10 +117,11 @@ class ServerThread(Thread):
                     print(f"Error saving client to file 'clients': {e}")
 
         def passwordHash(self,password):
-            password_bytes = password.encode('utf-8')
-            hash_object = SHA256.new(password_bytes)
-            sha256_hash = hash_object.digest()
-            return sha256_hash
+            encoded_data = password.encode('utf-8')
+            # Calculate the SHA256 hash
+            sha256_hash = hashlib.sha256()
+            sha256_hash.update(encoded_data)
+            return sha256_hash.hexdigest()
         
         def create_encrypt_AES(self):
             self.aes_key: bytes = os.urandom(1024)
@@ -132,7 +134,12 @@ class ServerThread(Thread):
 
         def response_register_client_success(self):
              logging.info("aaa")
-             ResponseRegistrationSuccess(self.uuid)
+             ResponseRegistrationSuccess(self.uuid, self.client_socket)
               #pack response
               #send back to client
+        def response_register_client_failed(self):
+            logging.info("bbb")
+            ResponseRegistrationFailed(self.client_socket)
+
+
             
