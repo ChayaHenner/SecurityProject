@@ -72,6 +72,9 @@ class ResponseRegistrationFailed(Response):
 class ResponseSendingSymmetricKey(Response):
     def __init__(self):
         super().__init__(ResponsePayloadCodes.SendingSymmetricKey.value)
+
+
+
 # import struct
 # server_response = {
 #     1600: "RegisterSuccess",
