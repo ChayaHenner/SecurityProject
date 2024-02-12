@@ -11,7 +11,8 @@ class Response:
     def __init__(self, code):
         self.version = SERVER_VERSION
         self.code = code
-        self.payload_size = 0#according to code
+        self.payload_size = 0
+        #according to code
 
     # def update_payload(self, payload_size):
     #     self.payload_size = payload_size

@@ -39,11 +39,18 @@ class Client:
     
     def send_register_request(self):
         try:
-            self.read_me_file()
-            nonce = secrets.token_bytes(8)
-            
-            request = Request('4ef195f2-e740-40a2-8c8b-daa624f35b24', 24, 1027, 24,[ "" ,nonce ] )
-            # request = Request('4ef195f2-e740-40a2-8c8b-daa624f35b24', 24, 1024, 510,[ self.client_name ,self.client_password ] )
+            self.read_me_file()            
+            request = Request('not matter whats here', 24, 1024, 510,[ self.client_name ,self.client_password ] )
+            packed_data = request.pack()
+            self.client_socket.send(packed_data)
+
+        except Exception as e:
+            logging.error(f"Error connecting to the server: {e}")
+
+    def send_symmetrickey_request(self):
+        try:
+            nonce = secrets.token_bytes(8).hex()
+            request = Request('4ef195f2-e740-40a2-8c8b-daa624f35b24', 24, 1027, 24,[ '123195f2-e740-40a2-8c8b-daa624f35123' ,nonce ] )
             packed_data = request.pack()
             self.client_socket.send(packed_data)
 
