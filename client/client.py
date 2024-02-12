@@ -2,7 +2,7 @@ import socket
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 from request import Request
-
+import secrets
 class Client:
     def __init__(self):
         self.get_info()
@@ -40,7 +40,10 @@ class Client:
     def send_register_request(self):
         try:
             self.read_me_file()
-            request = Request("sc1fbd2e3c98d2ce", 2, 1024, 510,[ self.client_name ,self.client_password ] )
+            nonce = secrets.token_bytes(8)
+            
+            request = Request('4ef195f2-e740-40a2-8c8b-daa624f35b24', 24, 1027, 24,[ "" ,nonce ] )
+            # request = Request('4ef195f2-e740-40a2-8c8b-daa624f35b24', 24, 1024, 510,[ self.client_name ,self.client_password ] )
             packed_data = request.pack()
             self.client_socket.send(packed_data)
 
