@@ -49,6 +49,7 @@ class ServerThread(Thread):
             'payload_0': unpacked_data[4].decode('utf-8').rstrip('\x00'),
             'payload_1': unpacked_data[5].decode('utf-8').rstrip('\x00')
             }
+            logging.info(self.request_info['code'])
             # logging.info(clientID, version, code, payload_size, payload_0, payload_1)  
 
             # return clientID, version, code, payload_size, payload_0, payload_1
@@ -137,9 +138,12 @@ class ServerThread(Thread):
              ResponseRegistrationSuccess(self.uuid, self.client_socket)
               #pack response
               #send back to client
+              
         def response_register_client_failed(self):
             logging.info("bbb")
             ResponseRegistrationFailed(self.client_socket)
-
+            
+        def send_ticket(self):
+            logging.info("ccc")
 
             
