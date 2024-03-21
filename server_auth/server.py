@@ -72,7 +72,8 @@ class Server:
             while True:
                 client_socket, client_address = self.server_socket.accept()
                 logging.info(f"New client on {client_address}.")
-                ServerThread(client_socket,self.clients).start()
+                ServerThread(client_socket,self.clients,self.msg_server_key).start()
+                
                 # request = client_socket.recv(1024)
                 # # name = client_socket.recv(1024).decode('utf-8')
                 # logging.info(f"got request: {request} from {client_address}")

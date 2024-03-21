@@ -12,10 +12,11 @@ import hashlib
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.NOTSET)
 
 class ServerThread(Thread):
-        def __init__(self, client_socket,clients):
+        def __init__(self, client_socket,clients,msg_server_key):
             super().__init__(name='client_socket', daemon=True)
             self.client_socket = client_socket
             self.clients = clients
+            self.msg_server_key=msg_server_key
             logging.info("Server Thread ID " + str(threading.current_thread().ident))
 
         def run(self):
@@ -83,10 +84,11 @@ class ServerThread(Thread):
                 self.response_register_client_failed
        
         def send_ticket(self):
-             logging.info("send ticket")
-             self.create_encrypt_AES()
-             self.create_ticket()
-             self.response_send_ticket()
+            logging.info("send ticket")             
+            ResponseSendingSymmetricKey(self)
+            #self.create_encrypt_AES()
+            #self.create_ticket()
+            #self.response_send_ticket()
         
         def check_client_exist(self):
             for client in self.clients:
@@ -142,8 +144,12 @@ class ServerThread(Thread):
         def response_register_client_failed(self):
             logging.info("bbb")
             ResponseRegistrationFailed(self.client_socket)
+        
+        def ResponseSendingSymmetricKey(self):
+            logging.info("bbb")
+            ResponseRegistrationFailed(self.client_socket,self.uuid,self.request_info['payload_1'],self.clients.client_info['Password'],self.request_info['payload_0'],self.msg_server_key)
             
-        def send_ticket(self):
-            logging.info("ccc")
+
+            
 
             

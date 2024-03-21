@@ -2,7 +2,10 @@ import socket
 import struct
 import logging 
 from enum import Enum
-from Crypto.Random import get_random_bytes
+from crypto.Cipher import AES
+from crypto.Util.Padding import pad
+from datetime import datetime, timedelta
+from crypto.Random import get_random_bytes
 class ResponsePayloadCodes(Enum):
     RegistrationSuccess = 1600
     RegistrationFailed = 1601
@@ -71,25 +74,79 @@ class ResponseRegistrationFailed(Response):
         logging.info("regist failed done!")
 
 class ResponseSendingSymmetricKey(Response):
-    def __init__(self, client_socket,client_id):
+    def __init__(self, client_socket,client_id, client_nonce,client_key,server_id,msg_server_key):
         super().__init__(ResponsePayloadCodes.SendingSymmetricKey.value)
         
         logging.info("in SendingSymmetricKey")
         
         self.client_socket = client_socket
         self.payload_size= SEND_KEY_SIZE
+        AES_key=get_random_bytes(32)
+
         
-        self.client_id=client_id
-        self.encrypted_key= create_encrypt_key()
-def create_encrypt_key():
-    random_key = generate_random_key()
+        client_id=client_id
+        encrypted_key= create_encrypt_key(client_nonce,client_key,AES_key)
+        ticket=create_ticket(client_id,server_id,msg_server_key,AES_key)
+        
+        packed_data = struct.pack('16s56s97s', client_id, encrypted_key, ticket)
+        self.client_socket.send(packed_data)
+        
+        
+        
+def create_encrypt_key(client_nonce,client_key,AES_key):
+    
+    random_IV = get_random_bytes(16)
+    
+    encrypted_nonce= encrypt_message(random_IV,client_key,client_nonce)
+    logging.info("encrypted_nonce=" + encrypted_nonce)
+    encrypted_key= encrypt_message(random_IV,client_key,AES_key)    
+    encrypted_key_pack =encrypted_key_pack(random_IV, encrypted_nonce, encrypted_key)
+    return encrypted_key_pack
 
-    return 
+
+ 
+def encrypted_key_pack(IV, Nonce, AES_key):
+    # pack_objects(obj1, obj2, obj3):
+ 
+    if not (len(IV) == 16 and len(Nonce) == 8 and len(AES_key) == 32):
+        raise ValueError("Invalid input sizes. Ensure IV is 16 bytes, Nonce is 8 bytes, and AES_key is 32 bytes.")
+    
+    # The format string '16s8s32s' indicates three sequences of bytes of lengths 16, 8, and 32.
+    # 's' stands for 'string' which is used for bytes objects in Python struct.
+    packed_data = struct.pack('16s8s32s', IV, Nonce, AES_key)
+    return packed_data
 
 
-def generate_random_key():
-    key = get_random_bytes(16)
-    return key
+def encrypt_message(iv, key, message):
+
+    # Ensure the inputs are in the correct format
+    if not isinstance(message, bytes):
+        message = message.encode()  # Convert str to bytes if necessary
+    
+    if not isinstance(iv, bytes) or not isinstance(key, bytes):
+        raise TypeError("IV and key must be bytes.")
+
+    # Create a new AES cipher instance
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+
+    # Encrypt the message
+    # The 'pad' method will pad the message to be a multiple of AES.block_size
+    encrypted_message = cipher.encrypt(pad(message, AES.block_size))
+    return encrypted_message
+
+def create_ticket(client_id,server_id,msg_server_key,AES_key):
+    logging.info("ticket")
+    Version=24
+    client_id=client_id
+    server_id= server_id
+    creation_time=datetime.now()
+    ticket_IV=get_random_bytes(16)
+    AES_key= encrypt_message(ticket_IV,msg_server_key,AES_key)
+    two_weeks_later = datetime.now() + timedelta(weeks=2)
+    expiration_time=encrypt_message(ticket_IV,msg_server_key,two_weeks_later)
+    packed_data = struct.pack('1s16s16s8s16s32s8s', Version, client_id, server_id,creation_time,ticket_IV,AES_key,expiration_time)
+    return packed_data
+    
 
 
 
