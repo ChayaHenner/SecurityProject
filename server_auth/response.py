@@ -2,6 +2,7 @@ import socket
 import struct
 import logging 
 from enum import Enum
+from Crypto.Random import get_random_bytes
 class ResponsePayloadCodes(Enum):
     RegistrationSuccess = 1600
     RegistrationFailed = 1601
@@ -10,7 +11,7 @@ class ResponsePayloadCodes(Enum):
 
 SERVER_VERSION = 24 
 SUCCESS_SIZE = 16
-
+SEND_KEY_SIZE = 169
 
 class Response:
     def __init__(self, code):
@@ -70,9 +71,30 @@ class ResponseRegistrationFailed(Response):
         logging.info("regist failed done!")
 
 class ResponseSendingSymmetricKey(Response):
-    def __init__(self):
+    def __init__(self, client_socket,client_id):
         super().__init__(ResponsePayloadCodes.SendingSymmetricKey.value)
+        
+        logging.info("in SendingSymmetricKey")
+        
+        self.client_socket = client_socket
+        self.payload_size= SEND_KEY_SIZE
+        
+        self.client_id=client_id
+        self.encrypted_key= create_encrypt_key()
+def create_encrypt_key():
+    random_key = generate_random_key()
 
+    return 
+
+
+def generate_random_key():
+    key = get_random_bytes(16)
+    return key
+
+
+
+      
+        
 
 
 # import struct
