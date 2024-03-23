@@ -107,7 +107,7 @@ class ServerThread(Thread):
                 if client['ID'][:16] == self.request_info['clientID'][:16]:
                     logging.info("faond client")           
                     logging.info(client['ID'][:16])           
-                    logging.info(client['Password'])           
+                    logging.info(client['PasswordHash'])           
                     return client
 
 
@@ -122,16 +122,16 @@ class ServerThread(Thread):
                 client_info = {
                         'ID': self.uuid,
                         'Name': self.request_info['payload_0'],
-                        'Password':self.request_info['payload_1'], 
+                        'PasswordHash':self.request_info['payload_1'], 
                         'LastSeen': datetime.now()
                 }
 
-                client_info['Password']=self.passwordHash(client_info['Password'])
-                logging.info(client_info['Password'])
+                client_info['PasswordHash']=self.passwordHash(client_info['PasswordHash'])[0:32]
+                logging.info(client_info['PasswordHash'])
                 self.clients.append(client_info)
                 try:
                     with open('clients.txt', 'a') as file:
-                        file.write(f"{self.uuid}:{client_info['Name']}:{client_info['Password']}:{client_info['LastSeen']}\n")
+                        file.write(f"{self.uuid}:{client_info['Name']}:{client_info['PasswordHash']}:{client_info['LastSeen']}\n")
                     print(f"Client '{self.uuid}' saved to 'clients'.")
                 except Exception as e:
                     print(f"Error saving client to file 'clients': {e}")
@@ -142,15 +142,6 @@ class ServerThread(Thread):
             sha256_hash = hashlib.sha256()
             sha256_hash.update(encoded_data)
             return sha256_hash.hexdigest()
-        
-        def create_encrypt_AES(self):
-            self.aes_key: bytes = os.urandom(1024)
-            #with pychrome?
-            #encrypt with client key
-        
-        def create_ticket(self):
-            logging.info("creating ticket")
-            #create and save ticket self.ticket
 
         def response_register_client_success(self):
              logging.info("aaa")
@@ -162,7 +153,7 @@ class ServerThread(Thread):
         
         def Response_sending_symmetric_key(self):
             logging.info("ccc")
-            ResponseSendingSymmetricKey(self.client_socket,self.req_client['ID'],self.request_info['payload_1'],self.req_client['Password'],self.request_info['payload_0'],self.msg_server_key)
+            ResponseSendingSymmetricKey(self.client_socket,self.req_client['ID'],self.request_info['payload_1'],self.req_client['PasswordHash'],self.request_info['payload_0'],self.msg_server_key)
             
 
             

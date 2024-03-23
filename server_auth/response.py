@@ -88,8 +88,9 @@ class ResponseSendingSymmetricKey(Response):
         
         logging.info("in SendingSymmetricKey")
         
-        self.client_socket = client_socket
-        self.payload_size= SEND_KEY_SIZE
+        self.client_socket = client_socket      
+        self.payload_size= SEND_KEY_SIZE       
+        client_key=client_key.encode()
         AES_key=get_random_bytes(32)
 
         
@@ -108,7 +109,9 @@ class ResponseSendingSymmetricKey(Response):
         
         
 def create_encrypt_key(client_nonce,client_key,AES_key):
-    
+    logging.INFO(client_nonce)
+    logging.INFO(client_key) 
+    logging.INFO(AES_key) 
     random_IV = get_random_bytes(16)
     
     encrypted_nonce= encrypt_message(random_IV,client_key,client_nonce)

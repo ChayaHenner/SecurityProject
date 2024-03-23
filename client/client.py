@@ -53,7 +53,7 @@ class Client:
     def send_symmetrickey_request(self):
         try:
             nonce = secrets.token_bytes(8).hex()
-            request = Request("fb080d6b-cc1f-4d44-ae3e-2bde227f712c", 24, 1027, 24,[ '123195f2-e740-40a2-8c8b-daa624f35123' ,nonce ] )
+            request = Request("4a0fbcea-05a8-4628-9b52-d55fa35c8763", 24, 1027, 24,[ '123195f2-e740-40a2-8c8b-daa624f35123' ,nonce ] )
             packed_data = request.pack()
             self.client_socket.send(packed_data)
 
