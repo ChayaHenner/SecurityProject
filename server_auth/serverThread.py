@@ -41,8 +41,9 @@ class ServerThread(Thread):
                 
         def unpack_request(self):
             logging.info("unpack request")
-            #unpacked_data = struct.unpack("!16s B H I 255s 255s", self.request)
-            unpacked_data = struct.unpack("!16s B H I ", self.request)
+            
+            unpacked_data = struct.unpack("!16s B H I 255s 255s", self.request)
+            #unpacked_data = struct.unpack("!16s B H I 16s 8s", self.request)
             #if unpacked_data[3]==1024:
 
             #    unpacked_data = struct.unpack("!16s B H I 255s 255s", self.request)
@@ -54,9 +55,11 @@ class ServerThread(Thread):
             'version': unpacked_data[1],
             'code': unpacked_data[2],
             'payload_size': unpacked_data[3],
-            #'payload_0': unpacked_data[4].decode('utf-8').rstrip('\x00'),
-            #'payload_1': unpacked_data[5].decode('utf-8').rstrip('\x00')
+            'payload_0': unpacked_data[4].decode('utf-8').rstrip('\x00'),
+            'payload_1': unpacked_data[5].decode('utf-8').rstrip('\x00')
             }
+            logging.info(self.request_info['clientID'])
+
             
             logging.info(self.request_info['code'])
             # logging.info(clientID, version, code, payload_size, payload_0, payload_1)  
@@ -92,8 +95,9 @@ class ServerThread(Thread):
                 self.response_register_client_failed()
        
         def send_ticket(self):
-            logging.info("send ticket")             
-            ResponseSendingSymmetricKey(self)
+            logging.info("send ticket")
+            self.req_client=self.search_for_client()          
+            self.Response_sending_symmetric_key()
             #self.create_encrypt_AES()
             #self.create_ticket()
             #self.response_send_ticket()
@@ -103,7 +107,12 @@ class ServerThread(Thread):
                 if client['Name'] == self.request_info['payload_0']:
                     return True
             return False
-
+        
+        def search_for_client(self):
+            for client in self.clients:
+                if client['ID'] == self.request_info['clientID']:
+                    return client
+            
         
         def create_uuid(self):
             self.uuid=uuid.uuid4()
@@ -112,7 +121,7 @@ class ServerThread(Thread):
         def save_client(self):
                 logging.info("save client")
                 client_info = {
-                        'ID': self.request_info['clientID'],
+                        'ID': self.uuid,
                         'Name': self.request_info['payload_0'],
                         'Password':self.request_info['payload_1'], 
                         'LastSeen': datetime.now()
@@ -146,16 +155,14 @@ class ServerThread(Thread):
         def response_register_client_success(self):
              logging.info("aaa")
              ResponseRegistrationSuccess(self.uuid, self.client_socket)
-              #pack response
-              #send back to client
               
         def response_register_client_failed(self):
             logging.info("bbb")
             ResponseRegistrationFailed(self.client_socket)
         
-        def ResponseSendingSymmetricKey(self):
-            logging.info("bbb")
-            ResponseRegistrationFailed(self.client_socket,self.uuid,self.request_info['payload_1'],self.clients.client_info['Password'],self.request_info['payload_0'],self.msg_server_key)
+        def Response_sending_symmetric_key(self):
+            logging.info("ccc")
+            ResponseSendingSymmetricKey(self.client_socket,self.req_client.client_info['ID'],self.request_info['payload_1'],self.req_client.client_info['Password'],self.request_info['payload_0'],self.msg_server_key)
             
 
             

@@ -19,7 +19,7 @@ class Request:
         elif self.code==1027 :
             x=16
             y=8
-        packed_data = struct.pack(f"!16s B H I {x}s {y}s",
+        packed_data = struct.pack(f"16s B H I {x}s {y}s",
                                   self.clientID.encode('utf-8'),
                                   self.version,
                                   self.code,
@@ -27,6 +27,7 @@ class Request:
                                   self.payload[0].encode('utf-8'),
                                   self.payload[1].encode('utf-8')
                                   )
+    
         return packed_data
 
         
