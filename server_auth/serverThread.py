@@ -42,14 +42,9 @@ class ServerThread(Thread):
         def unpack_request(self):
             logging.info("unpack request")
             
-            unpacked_data = struct.unpack("!16s B H I 255s 255s", self.request)
-            #unpacked_data = struct.unpack("!16s B H I 16s 8s", self.request)
-            #if unpacked_data[3]==1024:
+            #unpacked_data = struct.unpack("!16s B H I 255s 255s", self.request)
+            unpacked_data = struct.unpack("!16s B H I 16s 8s", self.request)
 
-            #    unpacked_data = struct.unpack("!16s B H I 255s 255s", self.request)
-            #    logging.info("unpacked_data[0]")
-            #elif unpacked_data[3]==1027:
-            #    unpacked_data = struct.unpack("!16s B H I 16s 8s", self.request)
             self.request_info = {
             'clientID': unpacked_data[0].decode('utf-8').rstrip('\x00'),
             'version': unpacked_data[1],
@@ -59,12 +54,11 @@ class ServerThread(Thread):
             'payload_1': unpacked_data[5].decode('utf-8').rstrip('\x00')
             }
             logging.info(self.request_info['clientID'])
-
-            
+            logging.info(self.request_info['version'])
             logging.info(self.request_info['code'])
-            # logging.info(clientID, version, code, payload_size, payload_0, payload_1)  
-
-            # return clientID, version, code, payload_size, payload_0, payload_1
+            logging.info(self.request_info['payload_size'])            
+            logging.info(self.request_info['payload_0'])
+            logging.info(self.request_info['payload_1'])
 
         def proccess_request(self):
             try:
@@ -110,8 +104,13 @@ class ServerThread(Thread):
         
         def search_for_client(self):
             for client in self.clients:
-                if client['ID'] == self.request_info['clientID']:
+                if client['ID'][:16] == self.request_info['clientID'][:16]:
+                    logging.info("faond client")           
+                    logging.info(client['ID'][:16])           
+                    logging.info(client['Password'])           
                     return client
+
+
             
         
         def create_uuid(self):
@@ -128,6 +127,7 @@ class ServerThread(Thread):
                 }
 
                 client_info['Password']=self.passwordHash(client_info['Password'])
+                logging.info(client_info['Password'])
                 self.clients.append(client_info)
                 try:
                     with open('clients.txt', 'a') as file:
@@ -162,7 +162,7 @@ class ServerThread(Thread):
         
         def Response_sending_symmetric_key(self):
             logging.info("ccc")
-            ResponseSendingSymmetricKey(self.client_socket,self.req_client.client_info['ID'],self.request_info['payload_1'],self.req_client.client_info['Password'],self.request_info['payload_0'],self.msg_server_key)
+            ResponseSendingSymmetricKey(self.client_socket,self.req_client['ID'],self.request_info['payload_1'],self.req_client['Password'],self.request_info['payload_0'],self.msg_server_key)
             
 
             

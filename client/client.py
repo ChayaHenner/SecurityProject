@@ -7,8 +7,10 @@ class Client:
     def __init__(self):
         self.get_info()
         self.connect_to_auth_server()
-        self.send_register_request()
-        #self.send_symmetrickey_request()
+        self.read_me_file()
+
+        #self.send_register_request()
+        self.send_symmetrickey_request()
    
     def get_info(self):
         file_path = "srv.info.txt"
@@ -51,7 +53,7 @@ class Client:
     def send_symmetrickey_request(self):
         try:
             nonce = secrets.token_bytes(8).hex()
-            request = Request(b'\x14kg\x12u\xe2E7\xa3\x9e*\x8f\xfca\x9e\x86', 24, 1027, 24,[ '123195f2-e740-40a2-8c8b-daa624f35123' ,nonce ] )
+            request = Request("fb080d6b-cc1f-4d44-ae3e-2bde227f712c", 24, 1027, 24,[ '123195f2-e740-40a2-8c8b-daa624f35123' ,nonce ] )
             packed_data = request.pack()
             self.client_socket.send(packed_data)
 
