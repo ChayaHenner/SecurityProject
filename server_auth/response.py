@@ -32,6 +32,8 @@ class Response:
         if isinstance(self.payload, UUID):
         # Convert UUID payload to bytes (UUIDs are 16 bytes)
             payload_bytes = self.payload.bytes
+        else:
+            payload_bytes = self.payload
         
         packed_data = struct.pack(f"B H I {x}s", self.version, self.code, self.payload_size, payload_bytes)
         return packed_data
@@ -60,8 +62,10 @@ class ResponseRegistrationSuccess(Response):
         
         packed_data = self.pack(self.payload_size)
         self.client_socket.send(packed_data)
-        print("Packed Data:")
-        self.print_packed_data(packed_data)
+        #print("Packed Data:")
+        #self.print_packed_data(packed_data)
+        logging.info("regist success done!")
+
         
         
         
@@ -74,8 +78,8 @@ class ResponseRegistrationFailed(Response):
         self.client_socket = client_socket
         packed_data = self.pack(self.payload_size)
         self.client_socket.send(packed_data)
-        print("Packed Data:")
-        self.print_packed_data(packed_data)  # Print the packed data
+        #print("Packed Data:")
+        #self.print_packed_data(packed_data)  # Print the packed data
         logging.info("regist failed done!")
 
 class ResponseSendingSymmetricKey(Response):
@@ -91,9 +95,14 @@ class ResponseSendingSymmetricKey(Response):
         
         client_id=client_id
         encrypted_key= create_encrypt_key(client_nonce,client_key,AES_key)
+        logging.info("encrypted_key created")
+  
         ticket=create_ticket(client_id,server_id,msg_server_key,AES_key)
-        
+        logging.info("ticket created")
+
         packed_data = struct.pack('16s56s97s', client_id, encrypted_key, ticket)
+        logging.info("pack created")
+
         self.client_socket.send(packed_data)
         
         

@@ -7,8 +7,8 @@ class Client:
     def __init__(self):
         self.get_info()
         self.connect_to_auth_server()
-        self.send_register_request()
-        #self.send_symmetrickey_request()
+        #self.send_register_request()
+        self.send_symmetrickey_request()
    
     def get_info(self):
         file_path = "srv.info.txt"
