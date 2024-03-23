@@ -113,16 +113,16 @@ class ResponseSendingSymmetricKey(Response):
         
         
         
-def create_encrypted_key(client_nonce,client_key,AES_key):
+def create_encrypted_key(massage,key,AES_key):
     logging.INFO("in encrypted key")
-    logging.INFO(client_nonce)
-    logging.INFO(client_key) 
+    logging.INFO(massage)
+    logging.INFO(key) 
     logging.INFO(AES_key) 
     random_IV = get_random_bytes(16)
     
-    encrypted_nonce= encrypt_message(random_IV,client_key,client_nonce)
+    encrypted_nonce= encrypt_message(random_IV,key,massage)
     logging.info("encrypted_nonce=" + encrypted_nonce)
-    encrypted_key= encrypt_message(random_IV,client_key,AES_key)    
+    encrypted_key= encrypt_message(random_IV,key,AES_key)    
     encrypted_key_pack =encrypted_key_pack(random_IV, encrypted_nonce, encrypted_key)
     return encrypted_key_pack
 

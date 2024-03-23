@@ -109,7 +109,7 @@ class ServerThread(Thread):
                     logging.info(client['ID'][:16])           
                     logging.info(client['PasswordHash'])           
                     return client
-
+            raise Exception("Request failed: invalid code request.")
 
             
         
