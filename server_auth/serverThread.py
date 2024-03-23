@@ -81,7 +81,7 @@ class ServerThread(Thread):
                 self.save_client()
                 self.response_register_client_success()
              else:
-                self.response_register_client_failed
+                self.response_register_client_failed()
        
         def send_ticket(self):
             logging.info("send ticket")             

@@ -2,10 +2,12 @@ import socket
 import struct
 import logging 
 from enum import Enum
-from crypto.Cipher import AES
-from crypto.Util.Padding import pad
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from uuid import UUID
+
 from datetime import datetime, timedelta
-from crypto.Random import get_random_bytes
+from Crypto.Random import get_random_bytes
 class ResponsePayloadCodes(Enum):
     RegistrationSuccess = 1600
     RegistrationFailed = 1601
@@ -22,15 +24,18 @@ class Response:
         self.code = code
         self.payload_size = 0#according to code
         self.payload = b''
-        
+    
+    import struct
+
     def pack(self, x):
-        packed_data = struct.pack(f"B H I {x}s",
-                                  self.version,
-                                  self.code,
-                                  self.payload_size,
-                                  self.payload
-                                  )
+        
+        if isinstance(self.payload, UUID):
+        # Convert UUID payload to bytes (UUIDs are 16 bytes)
+            payload_bytes = self.payload.bytes
+        
+        packed_data = struct.pack(f"B H I {x}s", self.version, self.code, self.payload_size, payload_bytes)
         return packed_data
+    
     
     def print_packed_data(packed_data,x):
         version, code, payload_size, payload = struct.unpack_from(f"B H I {x}s", packed_data)
