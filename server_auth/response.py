@@ -92,17 +92,21 @@ class ResponseSendingSymmetricKey(Response):
         self.payload_size= SEND_KEY_SIZE       
         client_key=client_key.encode()
         AES_key=get_random_bytes(32)
-
+        client_nonce= client_nonce.encode()
         
         client_id=client_id
         logging.info("working till here")
-        encrypted_key_pack= create_encrypted_key(client_nonce,client_key,AES_key)
+        logging.info(client_nonce)
+        logging.info(client_key)
+        logging.info(AES_key)
+        encrypted_key_package= create_encrypted_key(client_nonce, client_key, AES_key)
+        #encrypted_key_package = create_encrypted_key(client_nonce,client_key,AES_key)
         logging.info("encrypted_key created")
   
         ticket=create_ticket(client_id,server_id,msg_server_key,AES_key)
         logging.info("ticket created")
 
-        packed_data = struct.pack('16s56s97s', client_id, encrypted_key_pack, ticket)
+        packed_data = struct.pack('16s56s97s', client_id, encrypted_key_package, ticket)
         logging.info("pack created")
 
         self.client_socket.send(packed_data)
