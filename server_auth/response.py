@@ -88,13 +88,12 @@ class ResponseSendingSymmetricKey(Response):
         
         logging.info("in SendingSymmetricKey")
         
-        self.client_socket = client_socket      
-        self.payload_size= SEND_KEY_SIZE       
+        self.client_socket = client_socket            
         client_key=client_key.encode()
         AES_key=get_random_bytes(32)
         client_nonce= client_nonce.encode()
         
-        client_id=client_id
+        client_id_bytes=client_id.encode()
         logging.info("working till here")
         logging.info(client_nonce)
         logging.info(client_key)
@@ -105,10 +104,12 @@ class ResponseSendingSymmetricKey(Response):
         ticket=create_ticket(client_id,server_id,msg_server_key,AES_key)
         logging.info("ticket created")
 
-        packed_data = struct.pack('16s56s97s', client_id, encrypted_key_package, ticket)
+        packed_payload = struct.pack('16s56s97s', client_id_bytes, encrypted_key_package, ticket)
         logging.info("pack created")
-
-        #self.client_socket.send(packed_data)
+        self.payload_size = len(packed_payload)
+        packed_message = struct.pack('B H I', self.version, self.code, self.payload_size) + packed_payload
+        self.client_socket.send(packed_message)
+        logging.info("pack sent")
         
 def get_encryp(massage,key,AES_key):
     random_IV = get_random_bytes(16)
@@ -138,28 +139,31 @@ def encrypted_key_pack(IV, Nonce, AES_key):
 
 
 def encrypt_message(iv, key, message):
+    # Convert message to bytes if it's a datetime object or a string
     if isinstance(message, datetime):
-        massage_bytes = message.isoformat().encode()
-    # Ensure the inputs are in the correct format
-    elif not isinstance(message, bytes):
-        massage_bytes = message.encode()  # Convert str to bytes if necessary
+        message_bytes = message.isoformat().encode()
+    elif isinstance(message, str):
+        message_bytes = message.encode()  # Convert string to bytes if necessary
+    elif isinstance(message, bytes):
+        message_bytes = message
     else:
-        massage_bytes=message
-    if not isinstance(iv, bytes) or not isinstance(key, bytes):
+        raise TypeError("Message must be a datetime, str, or bytes object.")
+
+    # Ensure the IV and key are bytes
+    if not (isinstance(iv, bytes) and isinstance(key, bytes)):
         raise TypeError("IV and key must be bytes.")
 
     # Create a new AES cipher instance
     cipher = AES.new(key, AES.MODE_CBC, iv)
 
-    # Encrypt the message
-    # The 'pad' method will pad the message to be a multiple of AES.block_size
-    encrypt_message = cipher.encrypt(pad(massage_bytes, AES.block_size))
-    return encrypt_message
+    # Encrypt the message with padding
+    encrypted_message = cipher.encrypt(pad(message_bytes, AES.block_size))
+    return encrypted_message
 
 def create_ticket(client_id,server_id,msg_server_key,AES_key):
     logging.info("ticket")
     Version=24
-    Version=Version.to_bytes(1, 'big')
+    Version_bytes=Version.to_bytes(1, 'big')
     client_id_bytes=client_id.encode()
     server_id_bytes= server_id.encode()
     
@@ -170,10 +174,11 @@ def create_ticket(client_id,server_id,msg_server_key,AES_key):
     AES_key= encrypt_message(ticket_IV,msg_server_key_bytes,AES_key)
     logging.info("ttt")
     two_weeks_from_now = creation_time + timedelta(weeks=2)
-    creation_time = creation_time.isoformat().encode()
-    expiration_time=encrypt_message(ticket_IV,msg_server_key_bytes,two_weeks_from_now)
+    creation_time_bytes = creation_time.isoformat().encode()
+    two_weeks_from_now_bytes=two_weeks_from_now.isoformat().encode()
+    expiration_time=encrypt_message(ticket_IV,msg_server_key_bytes,two_weeks_from_now_bytes)
     logging.info("time")
-    packed_data = struct.pack('1s16s16s8s16s32s8s', Version, client_id_bytes, server_id_bytes,creation_time,ticket_IV,AES_key,expiration_time)
+    packed_data = struct.pack('1s16s16s8s16s32s8s', Version_bytes, client_id_bytes, server_id_bytes,creation_time_bytes,ticket_IV,AES_key,expiration_time)
     return packed_data
     
 
