@@ -41,7 +41,6 @@ class Server:
     
     def read_client_info(self):
         self.clients = []
-#do we need to do with pack?
         try:
             with open("clients.txt", 'r') as file:
                 for line in file:

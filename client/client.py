@@ -20,7 +20,7 @@ class Client:
         #regist_response = self.receive_register_response()
         self.send_symmetrickey_request()
         key_respone= self.receive_and_process_key_response()
-        
+        #self.connect_to_msg_server()
    
     def get_info(self):
         file_path = "srv.info.txt"
@@ -41,7 +41,7 @@ class Client:
         try:
             self.serverAuth_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # logging.info(self.auth_server_port , self.auth_server_address)
-            self.serverAuth_socket.connect(("127.0.0.1", 8080))
+            self.serverAuth_socket.connect((self.auth_server_address, self.auth_server_port))
             # client_socket.connect((self.auth_server_address, self.auth_server_port))
             # request = Request("1234567890123456", 2, 1025, 10, "payload")
             # packed_data = request.pack()
@@ -135,10 +135,10 @@ class Client:
         padded_plaintext = decryptor.update(encrypted_data) + decryptor.finalize()
 
         # Unpad the plaintext
-        unpadder = padding.PKCS7(128).unpadder()  # 128 is the block size for AES
-        plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
+        #unpadder = padding.PKCS7(128).unpadder()  # 128 is the block size for AES
+        #plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
 
-        return plaintext
+        return padded_plaintext
     
     
     def receive_and_process_key_response(self):
@@ -173,7 +173,7 @@ class Client:
             
             #decrypted_nonce = self.decrypt_with_aes(nonce, self.client_password, encrypted_key_iv)
             decrypted_aes_key = self.decrypt_with_aes(encrypted_aes_key, self.client_password, encrypted_key_iv)
-            print("succses unpack' key is"+ decrypted_aes_key)
+            print("succses unpack' key ")
             # You can now use decrypted_aes_key for further AES operations and store the ticket for future use
             # Note: In real-world applications, ensure you are safely managing and storing cryptographic keys and materials.
 
@@ -194,3 +194,11 @@ class Client:
             sha256_hash = hashlib.sha256()
             sha256_hash.update(encoded_data)
             return sha256_hash.hexdigest()
+        
+    def connect_to_msg_server(self):
+        try:
+            self.msgServer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.msgServer_socket.connect((self.msg_server_address, self.msg_server_port))
+
+        except Exception as e:
+            logging.error(f"Error connecting to the server: {e}")

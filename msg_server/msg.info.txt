@@ -1,0 +1,4 @@
+127.0.0.1:8080
+auth server
+64f3f63963f04beb81a0e43321880182
+1spMPhTSQTgjrI8+L/bxMgR5lEEnub0Z7abA6jfKmAw=

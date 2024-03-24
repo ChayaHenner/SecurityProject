@@ -33,7 +33,7 @@ class ServerThread(Thread):
             # logging.info("handle request")  
             try:
                 self.request = self.client_socket.recv(2042)
-                logging.info(self.request)  
+                #logging.info(self.request)  
                 self.unpack_request()
                 self.proccess_request()
             except Exception as error:
