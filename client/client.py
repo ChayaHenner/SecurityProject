@@ -22,11 +22,11 @@ class Client:
         self.read_me_file()
         self.connect_to_msg_server()
 
-        self.send_register_request()
-        regist_response = self.receive_register_response()
+        #self.send_register_request()
+        #regist_response = self.receive_register_response()
         
-        #self.send_symmetrickey_request()
-        #self.key_respone= self.receive_and_process_key_response()
+        self.send_symmetrickey_request()
+        self.key_respone= self.receive_and_process_key_response()
         
         #self.send_ticket_to_msg_server()
         #self.get_answer()
