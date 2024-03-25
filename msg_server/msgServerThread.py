@@ -94,11 +94,31 @@ class msgServerThread(Thread):
         def handele_ticket(self,request_data):
             logging.info("handele_ticket")
             self.client_id=request_data['client_id']
+            logging.info("1")
             self.ticket_IV=request_data['Ticket']['IV']
+            logging.info("2")
             self.client_AES_key= self.decrypt_with_aes(request_data['Ticket']['AES_key'], self.auth_server_key, self.ticket_IV)
-            self.expiration_time=self.decrypt_with_aes(request_data['Ticket']['expiration_time'], self.auth_server_key, self.ticket_IV)
-            self.expiration_datetime = datetime.fromtimestamp(self.expiration_time)
-            if self.expiration_time < datetime.now():
+            logging.info("3")
+            encrypted_expiration_time=request_data['Ticket']['expiration_time']
+            bytes_encrypted_expiration_time=encrypted_expiration_time.to_bytes(16, 'big')
+            self.expiration_time=self.decrypt_with_aes(bytes_encrypted_expiration_time, self.auth_server_key, self.ticket_IV)
+            logging.info("4")
+            print(len(self.expiration_time))
+
+            #self.expiration_datetime = datetime.fromtimestamp(self.expiration_time)
+            # Extract the first 8 bytes for the timestamp
+            timestamp_bytes = self.expiration_time[:8]
+            logging.info("5")
+            
+            # Unpack the 8-byte timestamp
+            timestamp = struct.unpack('8s', timestamp_bytes)[0]  # Adjust for endianness as needed
+            logging.info("5")
+            # Convert the timestamp to a datetime object
+            expiration_datetime = datetime.fromtimestamp(timestamp)
+            
+            
+            logging.info("5")
+            if expiration_datetime < datetime.now():
                 print("The expiration time has passed.")
                 send_code=1609
                 self.send_answer(send_code)
@@ -122,8 +142,8 @@ class msgServerThread(Thread):
 
             
         def decrypt_with_aes(self, encrypted_data, key, iv):
-            #if len(encrypted_data) % 16 != 0:
-             #   raise ValueError("The encrypted AES key is not a multiple of the block size (16 bytes).")
+            #if s(encrypted_data) % 16 != 0:
+            #   raise ValueError("The encrypted AES key is not a multiple of the block size (16 bytes).")
 
             # Convert the key from string to bytes if it's not already bytes
             if isinstance(key, str):
@@ -148,7 +168,7 @@ class msgServerThread(Thread):
                 if client['client_id'][:16] == client_id[:16]:
                     logging.info("faond client")                 
                     return client['client_AES_key']
-            raise Exception("Request failed: invalid code request.")
+            raise Exception("Request failed: the client has no key")
         
         def send_answer(self,code):
             logging.info("send")
