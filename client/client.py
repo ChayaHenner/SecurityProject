@@ -20,7 +20,7 @@ class Client:
         #regist_response = self.receive_register_response()
         self.send_symmetrickey_request()
         key_respone= self.receive_and_process_key_response()
-        #self.connect_to_msg_server()
+        self.connect_to_msg_server()
    
     def get_info(self):
         file_path = "srv.info.txt"

@@ -25,14 +25,13 @@ class msgServerThread(Thread):
             try:
                 self.request = self.client_socket.recv(2042)
                 #logging.info(self.request)  
-                self.unpack_request()
-                self.proccess_request()
+                self.unpack_and_prosses_request(self.request)
             except Exception as error:
                 self.close_connection(error)
         
 
 
-        def unpack_data(self,pack):
+        def unpack_and_prosses_request(self,pack):
             # Unpack the initial parts of the package
             client_id, version, code, payload_size = struct.unpack('16sBHI', pack[:23])
             payload = pack[23:23 + payload_size]
@@ -147,3 +146,18 @@ class msgServerThread(Thread):
                     logging.info("faond client")                 
                     return client['client_AES_key']
             raise Exception("Request failed: invalid code request.")
+        
+        def send_succses_semmetrik_key():
+            logging.info("111")
+            
+        def send_succses_printing():
+            logging.info("222")
+        
+        def send_error():
+            logging.info("333")  
+            
+        def close_connection(self,error):
+            logging.error(error)
+            logging.info("Client connection is down, du to a fatal error or a protocol error")
+            self.client_socket.close()
+     
