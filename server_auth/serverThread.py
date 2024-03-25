@@ -42,16 +42,26 @@ class ServerThread(Thread):
         def unpack_request(self):
             logging.info("unpack request")
             
+            client_id, version, code, payload_size = struct.unpack('!16sBHI', self.request[:23])
+            payload = self.request[23:23 + payload_size]
+            logging.info("unpack request")
+
+            if code==1024:
+                payload_0, payload_1 = struct.unpack('255s255s', payload[:510])
+            elif code== 1027:
+                payload_0, payload_1 = struct.unpack('!16s8s', payload[:24])
+
+            
             #unpacked_data = struct.unpack("!16s B H I 255s 255s", self.request)
-            unpacked_data = struct.unpack("!16s B H I 16s 8s", self.request)
+            #unpacked_data = struct.unpack("!16s B H I 16s 8s", self.request)
 
             self.request_info = {
-            'clientID': unpacked_data[0].decode('utf-8').rstrip('\x00'),
-            'version': unpacked_data[1],
-            'code': unpacked_data[2],
-            'payload_size': unpacked_data[3],
-            'payload_0': unpacked_data[4].decode('utf-8').rstrip('\x00'),
-            'payload_1': unpacked_data[5].decode('utf-8').rstrip('\x00')
+            'clientID': client_id.decode('utf-8').rstrip('\x00'),
+            'version': version,
+            'code': code,
+            'payload_size': payload_size,
+            'payload_0': payload_0.decode('utf-8').rstrip('\x00'),
+            'payload_1': payload_1.decode('utf-8').rstrip('\x00')
             }
             logging.info(self.request_info['clientID'])
             logging.info(self.request_info['version'])

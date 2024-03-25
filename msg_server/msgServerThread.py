@@ -10,7 +10,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.NOTSET)
 
 class msgServerThread(Thread):
         def __init__(self, client_socket, auth_server_key):
-            self.auth_server_key=auth_server_key
+            self.auth_server_key=auth_server_key[:32]
             super().__init__(name='client_socket', daemon=True)
             self.client_socket = client_socket
             logging.info("Server Thread ID " + str(threading.current_thread().ident))
@@ -33,14 +33,14 @@ class msgServerThread(Thread):
 
         def unpack_and_prosses_request(self,pack):
             # Unpack the initial parts of the package
-            client_id, version, code, payload_size = struct.unpack('16sBHI', pack[:23])
+            client_id, version, code, payload_size = struct.unpack('!16sBHI', pack[:23])
             payload = pack[23:23 + payload_size]
 
             # Process according to code
             if code == 1028:  # symmetric_key
                 # Unpack the payload for symmetric_key
-                auth_IV, auth_version, auth_client_id, auth_server_id, creation_time = struct.unpack('16sB16s16sQ', payload[:57])
-                ticket_version, ticket_client_id, ticket_server_id, ticket_creation_time, ticket_IV, AES_key, expiration_time = struct.unpack('B16s16sQ16s32sQ', payload[57:])
+                auth_IV, auth_version, auth_client_id, auth_server_id, creation_time = struct.unpack('!16sB16s16sQ', payload[:57])
+                ticket_version, ticket_client_id, ticket_server_id, ticket_creation_time, ticket_IV, AES_key, expiration_time = struct.unpack('!B16s16sQ16s32sQ', payload[57:])
 
                 
                 
@@ -100,13 +100,16 @@ class msgServerThread(Thread):
             self.expiration_datetime = datetime.fromtimestamp(self.expiration_time)
             if self.expiration_time < datetime.now():
                 print("The expiration time has passed.")
+                send_code=1609
+                self.send_answer(send_code)
                 self.client_socket.close()
             client_info={
                 'client_id':self.client_id,
                 'client_AES_key': self.client_AES_key
             }
             self.clients.append(client_info)
-            self.send_succses_semmetrik_key()
+            send_code=1604
+            self.send_answer(send_code)
             
             
         def hendel_prints(self,request_data):
@@ -114,13 +117,13 @@ class msgServerThread(Thread):
             self.client_key=self.search_for_client(request_data['client_id'])
             massage = self.decrypt_with_aes(request_data['Message']['content'], self.client_key, request_data['Message']['IV'])
             logging.info(massage.decode('utf-8'))
-            self.send_succses_printing()
-            
+            send_code=1605
+            self.send_answer(send_code)            
 
             
         def decrypt_with_aes(self, encrypted_data, key, iv):
-            if len(encrypted_data) % 16 != 0:
-                raise ValueError("The encrypted AES key is not a multiple of the block size (16 bytes).")
+            #if len(encrypted_data) % 16 != 0:
+             #   raise ValueError("The encrypted AES key is not a multiple of the block size (16 bytes).")
 
             # Convert the key from string to bytes if it's not already bytes
             if isinstance(key, str):
@@ -147,14 +150,11 @@ class msgServerThread(Thread):
                     return client['client_AES_key']
             raise Exception("Request failed: invalid code request.")
         
-        def send_succses_semmetrik_key():
-            logging.info("111")
+        def send_answer(self,code):
+            logging.info("send")
+            code_bytes=code.to_bytes(1, 'big')
+            self.client_socket.send(code)
             
-        def send_succses_printing():
-            logging.info("222")
-        
-        def send_error():
-            logging.info("333")  
             
         def close_connection(self,error):
             logging.error(error)
