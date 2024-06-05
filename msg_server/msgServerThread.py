@@ -24,7 +24,7 @@ class msgServerThread(Thread):
             # logging.info("handle request")  
             try:
                 self.request = self.client_socket.recv(2042)
-                #logging.info(self.request)  
+                logging.info(self.request)  
                 self.unpack_and_prosses_request(self.request)
             except Exception as error:
                 self.close_connection(error)
@@ -33,63 +33,65 @@ class msgServerThread(Thread):
 
         def unpack_and_prosses_request(self,pack):
             # Unpack the initial parts of the package
-            client_id, version, code, payload_size = struct.unpack('!16sBHI', pack[:23])
-            payload = pack[23:23 + payload_size]
+            if len(pack) >= 53:#Minimum message size check
 
-            # Process according to code
-            if code == 1028:  # symmetric_key
-                # Unpack the payload for symmetric_key
-                auth_IV, auth_version, auth_client_id, auth_server_id, creation_time = struct.unpack('!16sB16s16sQ', payload[:57])
-                ticket_version, ticket_client_id, ticket_server_id, ticket_creation_time, ticket_IV, AES_key, expiration_time = struct.unpack('!B16s16sQ16s32sQ', payload[57:])
+                client_id, version, code, payload_size = struct.unpack('!16sBHI', pack[:23])
+                payload = pack[23:23 + payload_size]
+                logging.info("unpacking success")
 
-                
-                
-
-                
-                request_data= {
-                    'client_id': client_id,
-                    'version': version,
-                    'code': code,
-                    'payload_size': payload_size,
-                    'Authenticator': {
-                        'IV': auth_IV,
-                        'version': auth_version,
-                        'client_id': auth_client_id,
-                        'server_id': auth_server_id,
-                        'creation_time': creation_time
-                    },
-                    'Ticket': {
-                    'version': ticket_version,
-                    'client_id': ticket_client_id,
-                    'server_id': ticket_server_id,
-                    'creation_time': ticket_creation_time,
-                    'IV': ticket_IV,
-                    'AES_key': AES_key,
-                    'expiration_time': expiration_time
+                # Process according to code
+                if code == 1028:  # symmetric_key
+                    # Unpack the payload for symmetric_key
+                    auth_IV, auth_version, auth_client_id, auth_server_id, creation_time = struct.unpack('!16sB16s16sQ', payload[:57])
+                    ticket_version, ticket_client_id, ticket_server_id, ticket_creation_time, ticket_IV, AES_key, expiration_time = struct.unpack('!B16s16sQ16s32sQ', payload[57:])
+                   
+                    request_data= {
+                        'client_id': client_id,
+                        'version': version,
+                        'code': code,
+                        'payload_size': payload_size,
+                        'Authenticator': {
+                            'IV': auth_IV,
+                            'version': auth_version,
+                            'client_id': auth_client_id,
+                            'server_id': auth_server_id,
+                            'creation_time': creation_time
+                        },
+                        'Ticket': {
+                        'version': ticket_version,
+                        'client_id': ticket_client_id,
+                        'server_id': ticket_server_id,
+                        'creation_time': ticket_creation_time,
+                        'IV': ticket_IV,
+                        'AES_key': AES_key,
+                        'expiration_time': expiration_time
+                        }
                     }
-                }
-                self.handele_ticket(request_data)
+                    self.handele_ticket(request_data)
 
-            elif code == 1029:  # print_ask
-                # Unpack the payload for print_ask
-                message_size, = struct.unpack('I', payload[:4])
-                message_IV, message_content = struct.unpack(f'16s{message_size}s', payload[4:])
+                elif code == 1029:  # print_ask
+                    # Unpack the payload for print_ask
+                    message_size, = struct.unpack('I', payload[:4])
+                    message_IV, message_content = struct.unpack(f'16s{message_size}s', payload[4:])
 
-                request_data=  {
-                    'client_id': client_id,
-                    'version': version,
-                    'code': code,
-                    'payload_size': payload_size,
-                    'Message': {
-                        'size': message_size,
-                        'IV': message_IV,
-                        'content': message_content
+                    request_data=  {
+                        'client_id': client_id,
+                        'version': version,
+                        'code': code,
+                        'payload_size': payload_size,
+                        'Message': {
+                            'size': message_size,
+                            'IV': message_IV,
+                            'content': message_content
+                        }
                     }
-                }
-                self.hendel_prints(request_data)
+                    self.hendel_prints(request_data)
 
+                else:
+                    print("Unexpected response code:", code)
+                    
             else:
-                print("Unexpected response code:", code)
+                print("Unexpected size of msg")
                 
         def handele_ticket(self,request_data):
             logging.info("handele_ticket")
@@ -107,14 +109,15 @@ class msgServerThread(Thread):
 
             #self.expiration_datetime = datetime.fromtimestamp(self.expiration_time)
             # Extract the first 8 bytes for the timestamp
-            timestamp_bytes = self.expiration_time[:8]
+            #timestamp_bytes = self.expiration_time[:8]
             logging.info("5")
-            
-            # Unpack the 8-byte timestamp
-            timestamp = struct.unpack('8s', timestamp_bytes)[0]  # Adjust for endianness as needed
-            logging.info("5")
-            # Convert the timestamp to a datetime object
-            expiration_datetime = datetime.fromtimestamp(timestamp)
+            expiration_timestamp = int.from_bytes(self.expiration_time, 'big')
+            logging.info("6")
+            logging.info(expiration_timestamp)
+
+
+            # Step 2: Convert integer (Unix timestamp) to datetime object
+            expiration_datetime = datetime.fromtimestamp(expiration_timestamp)
             
             
             logging.info("5")

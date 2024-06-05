@@ -46,9 +46,6 @@ class Response:
         print(f"Payload Size: {payload_size}")
         print(f"Payload: {payload.decode('utf-8')}")
 
-    # def update_payload(self, payload_size):
-    #     self.payload_size = payload_size
-
 
 class ResponseRegistrationSuccess(Response):
     def __init__(self, client_id, client_socket):
@@ -62,12 +59,8 @@ class ResponseRegistrationSuccess(Response):
         
         packed_data = self.pack(self.payload_size)
         self.client_socket.send(packed_data)
-        #print("Packed Data:")
-        #self.print_packed_data(packed_data)
         logging.info("regist success done!")
 
-        
-        
         
 class ResponseRegistrationFailed(Response):
     def __init__(self, client_socket):
@@ -78,8 +71,6 @@ class ResponseRegistrationFailed(Response):
         self.client_socket = client_socket
         packed_data = self.pack(self.payload_size)
         self.client_socket.send(packed_data)
-        #print("Packed Data:")
-        #self.print_packed_data(packed_data)  # Print the packed data
         logging.info("regist failed done!")
 
 class ResponseSendingSymmetricKey(Response):
@@ -94,10 +85,6 @@ class ResponseSendingSymmetricKey(Response):
         client_nonce= client_nonce.encode()
         
         client_id_bytes=client_id.encode()
-        logging.info("working till here")
-        logging.info(client_nonce)
-        logging.info(client_key)
-        logging.info(AES_key)
         encrypted_key_package= get_encryp(client_nonce,client_key,AES_key)
         logging.info("encrypted_key created")
   
@@ -106,6 +93,7 @@ class ResponseSendingSymmetricKey(Response):
 
         packed_payload = struct.pack('16s56s97s', client_id_bytes, encrypted_key_package, ticket)
         logging.info("pack created")
+        
         self.payload_size = len(packed_payload)
         packed_message = struct.pack('B H I', self.version, self.code, self.payload_size) + packed_payload
         self.client_socket.send(packed_message)
@@ -118,20 +106,6 @@ def get_encryp(massage,key,AES_key):
     encrypted_k_pack =encrypted_key_pack(random_IV, encrypted_nonce, encrypted_key)
     return encrypted_k_pack       
         
-def create_encrypted_key(massage,key,AES_key):
-    logging.INFO("in encrypted key")
-    logging.INFO(massage)
-    logging.INFO(key) 
-    logging.INFO(AES_key) 
-    random_IV = get_random_bytes(16)
-    
-    encrypted_nonce= encrypt_message(random_IV,key,massage)
-    logging.info("encrypted_nonce=" + encrypted_nonce)
-    encrypted_key= encrypt_message(random_IV,key,AES_key)    
-    encrypted_k_pack =encrypted_key_pack(random_IV, encrypted_nonce, encrypted_key)
-    return encrypted_k_pack
-
-
  
 def encrypted_key_pack(IV, Nonce, AES_key):
     packed_data = struct.pack('16s8s32s', IV, Nonce, AES_key)
@@ -161,7 +135,6 @@ def encrypt_message(iv, key, message):
     return encrypted_message
 
 def create_ticket(client_id,server_id,msg_server_key,AES_key):
-    logging.info("ticket")
     Version=24
     Version_bytes=Version.to_bytes(1, 'big')
     client_id_bytes=client_id.encode()
@@ -172,12 +145,10 @@ def create_ticket(client_id,server_id,msg_server_key,AES_key):
     ticket_IV=get_random_bytes(16)
     msg_server_key_bytes=msg_server_key.encode()[:16]
     AES_key= encrypt_message(ticket_IV,msg_server_key_bytes,AES_key)
-    logging.info("ttt")
     two_weeks_from_now = creation_time + timedelta(weeks=2)
     creation_time_bytes = creation_time.isoformat().encode()
     two_weeks_from_now_bytes=two_weeks_from_now.isoformat().encode()
     expiration_time=encrypt_message(ticket_IV,msg_server_key_bytes,two_weeks_from_now_bytes)
-    logging.info("time")
     packed_data = struct.pack('1s16s16s8s16s32s8s', Version_bytes, client_id_bytes, server_id_bytes,creation_time_bytes,ticket_IV,AES_key,expiration_time)
     return packed_data
     

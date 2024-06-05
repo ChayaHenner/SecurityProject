@@ -18,8 +18,9 @@ class Client:
         self.client_id="4a0fbcea-05a8-4628-9b52-d55fa35c8763"
         self.msg_server_id='123195f2-e740-40a2-8c8b-daa624f35123'
         self.get_info()
-        self.connect_to_auth_server()
         self.read_me_file()
+
+        self.connect_to_auth_server()
         self.connect_to_msg_server()
 
         #self.send_register_request()
@@ -28,8 +29,8 @@ class Client:
         self.send_symmetrickey_request()
         self.key_respone= self.receive_and_process_key_response()
         
-        #self.send_ticket_to_msg_server()
-        #self.get_answer()
+        self.send_ticket_to_msg_server()
+        self.get_answer()
 
         #self.send_msg_to_msg_server()
         #self.get_answer()
@@ -124,7 +125,7 @@ class Client:
                 print("Registration successful. Client ID:", self.client_id.hex())
                 return {'version': version, 'code': code, 'client_id': self.client_id}
             elif code == 1601:  # Registration Failed
-                print("Registration failed. No payload expected.")
+                print("Registration failed")
                 return {'version': version, 'code': code}
             else:
                 print("Received unknown response code from server.")
@@ -147,11 +148,6 @@ class Client:
 
             # Decrypt the data
             padded_plaintext = decryptor.update(encrypted_data) + decryptor.finalize()
-
-            # Unpad the plaintext
-            #unpadder = padding.PKCS7(128).unpadder()  # 128 is the block size for AES
-            #plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
-
             return padded_plaintext
         
         
